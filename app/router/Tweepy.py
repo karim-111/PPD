@@ -63,14 +63,14 @@ async def search_by_name(name, api):
     return df
 
 
-@router.get("/tweets/")
+@router.get("/tweets")
 async def info(settings: config.Settings = Depends(get_settings)):
 
     auth = tweepy.OAuthHandler(settings.CONSUMER_KEY, settings.CONSUMER_SECRET)
     auth.set_access_token(settings.ACCESS_KEY, settings.ACCESS_SECRET)
     api = tweepy.API(auth, wait_on_rate_limit=True)
 
-    df = await search("Bitcoin", 100, api)
+    df = await search("Macron", 100, api)
     print(df)
     return {
         "Succes": "Tweets are loaded"

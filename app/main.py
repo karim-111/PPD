@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi import FastAPI
 from .router import Tweepy
+from .router import Twint
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -23,7 +24,10 @@ app.add_middleware(
 
 
 app.include_router(Tweepy.router)
+app.include_router(Twint.router)
+
 
 @app.get("/")
 def read_root():
-    return {"Hello": "FastApi"}
+    print('done')
+    return {"f": 'f'}
