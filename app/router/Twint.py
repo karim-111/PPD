@@ -168,7 +168,7 @@ def get_nb_analysis(data):
     return d
     
 
-async def get_top20_occurnace(Data):
+def get_top20_occurnace(Data):
     all_words = ', '.join(Data.cleaned_tweet).lower().split()
     freq = nltk.FreqDist(all_words)
     top20=freq.most_common(10)
@@ -188,15 +188,22 @@ def topic_modeling(tweet, number):
 
     feat_names = vect.get_feature_names()
 
-    word_dict = {};
+    word_dict = {}
+    weight_dict ={}
+
+    #print(model.components_)
+    #print(len(model.components_))
+    #print(len(model.components_[0]))
     for i in range(number):
 
         #for each topic, obtain the largest values, and add the words they map to into the dictionary.
-        words_ids = model.components_[i].argsort()[:-20 - 1:-1]
+        words_ids = model.components_[i].argsort()[:-10 - 1:-1]
+        
         words = [feat_names[key] for key in words_ids]
-        word_dict[i] = words;
-
-    return word_dict
+        weights = [model.components_[i][key] for key in words_ids]
+        word_dict[i] = words
+        weight_dict[i] = weights
+    return word_dict, weight_dict
 
 def topic_format(topic_dct):
   res = []
@@ -247,34 +254,34 @@ def KPI_date_count(df):
 
 
 # Routes
-@router.get("/top_occurence")
-async def info(  ):
-    pdd = pd.read_csv(r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset\jlm.csv',sep=';')
-    pdd['cleaned_tweet']= clean_col(pdd['tweet'])
-    
-    return await get_top20_occurnace(pdd)
+@router.get("/top_occurence/{df_name}")
+async def info(df_name):
+    p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
+    full_path=os.path.join(p, '.'.join([df_name, 'csv']))
+    df = pd.read_csv(full_path,sep=';')
+    df['cleaned_tweet']= clean_col(df['tweet'])
+    print("alller",get_top20_occurnace(df))
+    return(get_top20_occurnace(df))
    
 @router.get("/sentiments_analysis/{df_name}",response_model=List[Item_sentiment])
 async def info(df_name):
     p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
     full_path=os.path.join(p, '.'.join([df_name, 'csv']))
-    print(full_path)
     df = pd.read_csv(full_path,sep=';')
     df['cleaned_tweet']= clean_col(df['tweet'])
     return(get_nb_analysis(df))
    
 
    
-@router.get("/topic_modeling/{df_name}",response_model=List[Item_topic])
+@router.get("/topic_modeling/{df_name}")
 async def info(df_name):
     p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
     full_path=os.path.join(p, '.'.join([df_name, 'csv']))
-    print(full_path)
     df = pd.read_csv(full_path,sep=';')
     df['cleaned_tweet']= clean_col(df['tweet'])
     resultat = topic_modeling(df,3)
-    print(topic_format(resultat))
-    return topic_format(resultat)
+    # print(topic_format(resultat))
+    return (resultat)
 
 
 @router.get("/kpi/{df_name}",response_model=Item)
