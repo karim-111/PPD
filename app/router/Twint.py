@@ -194,17 +194,21 @@ def topic_modeling(tweet, number):
     #print(model.components_)
     #print(len(model.components_))
     #print(len(model.components_[0]))
+    res = []
     for i in range(number):
 
         #for each topic, obtain the largest values, and add the words they map to into the dictionary.
         words_ids = model.components_[i].argsort()[:-10 - 1:-1]
-        
-        words = [feat_names[key] for key in words_ids]
-        weights = [model.components_[i][key] for key in words_ids]
-        word_dict[i] = words
-        weight_dict[i] = weights
-    return word_dict, weight_dict
-
+        tmp=[]
+        for key in words_ids:
+          tmp.append(
+              {
+                  "word": feat_names[key],
+                  "weight": model.components_[i][key]
+              }
+          )
+        res.append(tmp)
+    return res
 def topic_format(topic_dct):
   res = []
   for i in topic_dct.items():
@@ -283,6 +287,21 @@ async def info(df_name):
     # print(topic_format(resultat))
     return (resultat)
 
+@router.get("/topic_modeling/")
+async def info():
+    p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
+    full_path=os.path.join(p, '.'.join(['em', 'csv']))
+    df = pd.read_csv(full_path,sep=';')
+    full_path2=os.path.join(p, '.'.join(['ml', 'csv']))
+    df2 = pd.read_csv(full_path,sep=';')
+    frames=[df,df2]
+    result = pd.concat(frames)
+    df = result
+    df['cleaned_tweet']= clean_col(df['tweet'])
+    resultat = topic_modeling(df,3)
+    # print(topic_format(resultat))
+    return (resultat)
+
 
 @router.get("/kpi/{df_name}",response_model=Item)
 async def info(df_name):
@@ -291,6 +310,18 @@ async def info(df_name):
     df = pd.read_csv(full_path,sep=';')
     return(KPI_nbs(df))
 
+@router.get("/kpi/",response_model=Item)
+async def info():
+    p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
+    full_path=os.path.join(p, '.'.join(['em', 'csv']))
+    df = pd.read_csv(full_path,sep=';')
+    full_path2=os.path.join(p, '.'.join(['ml', 'csv']))
+    df2 = pd.read_csv(full_path,sep=';')
+    frames=[df,df2]
+    result = pd.concat(frames)
+    df = result
+    
+    return(KPI_nbs(df))
 @router.get("/kpi_best_likes/{df_name}",response_model=Item_best_like)
 async def info(df_name):
     p = r'C:\Users\nassi\Desktop\PPD_Tweets\PPD\app\Dataset'
